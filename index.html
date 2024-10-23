@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic YouTube Video Grid with 2x Speed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .form-container {
+            margin-bottom: 20px;
+        }
+        .form-container input {
+            padding: 10px;
+            margin-right: 10px;
+        }
+        .form-container button {
+            padding: 10px;
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+        }
+    </style>
+
+</head>
+<body>
+
+    <div class="form-container">
+        <input type="text" id="videoUrl" placeholder="Enter YouTube Video URL" />
+        <input type="number" id="repeatCount" placeholder="Number of Times" min="1" />
+        <button onclick="addVideos()">Add Videos</button>
+    </div>
+
+    <div class="video-grid" id="videoGrid">
+        <!-- Videos will be inserted here -->
+    </div>
+    <script src="https://www.youtube.com/iframe_api"></script> <!-- YouTube Iframe API -->
+    <script>
+        let playerInstances = []; // Store multiple player instances
+
+        function addVideos() {
+            const videoUrl = document.getElementById('videoUrl').value;
+            const repeatCount = parseInt(document.getElementById('repeatCount').value);
+            const videoGrid = document.getElementById('videoGrid');
+
+            // Extract the video ID from the YouTube URL
+            const videoId = getVideoIdFromUrl(videoUrl);
+            if (!videoId) {
+                alert('Please enter a valid YouTube URL.');
+                return;
+            }
+
+            // Clear previous content in the grid
+            videoGrid.innerHTML = '';
+            playerInstances = []; // Reset player instances
+
+            // Loop to add the video iframe the specified number of times
+            for (let i = 0; i < repeatCount; i++) {
+                const iframeContainer = document.createElement('div');
+                const iframeId = `player${i}`; // Unique ID for each iframe
+                iframeContainer.innerHTML = `<div id="${iframeId}"></div>`;
+                videoGrid.appendChild(iframeContainer);
+
+                // Initialize YouTube Player for each iframe
+                const player = new YT.Player(iframeId, {
+                    height: '300',
+                    width: '100%',
+                    videoId: videoId,
+                    playerVars: {
+                        'autoplay': 1,
+                        'loop': 1,
+                        'playlist': videoId,
+                        'mute': 1,
+                        'controls': 0,
+                        'playsinline': 1
+                    },
+                    events: {
+                        'onReady': onPlayerReady
+                    }
+                });
+
+                playerInstances.push(player);
+            }
+        }
+
+        // Function to extract the video ID from the YouTube URL
+        function getVideoIdFromUrl(url) {
+            const urlObj = new URL(url);
+            return urlObj.searchParams.get('v'); // Extract the video ID from 'v' parameter
+        }
+
+        // When the player is ready, set the playback speed to 2x
+        function onPlayerReady(event) {
+            event.target.setPlaybackRate(2); // Set playback speed to 2x
+        }
+    </script>
+
+</body>
+</html>
